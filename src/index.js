@@ -1,47 +1,23 @@
-import _ from 'lodash';
-import React, { Component } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
-import YTSearch from 'youtube-api-search';
-import SearchBar from './components/search_bar';
-import VideoList from './components/video_list';
-import VideoDetail from './components/video_detail';
+import { Provider } from 'react-redux';
+import { createStore, applyMiddleware } from 'redux';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import promise from 'redux-promise';
 
-const API_KEY = 'AIzaSyDfxJ-hiHH9PRKCH08NXFt9i3l4IZDwa2g';
+import reducers from './reducers';
+import PostsIndex from './components/posts_index';
+import PostsNew from './components/posts_new';
 
-class App extends Component {
-  constructor(props) {
-    super(props);
+const createStoreWithMiddleware = applyMiddleware(promise)(createStore);
 
-    this.state = {
-      videos: [],
-      selectedVideo: null
-    };
-
-    this.videoSearch('surfboards');
-  }
-
-  videoSearch(term) {
-    YTSearch({ key: API_KEY, term: term }, videos => {
-      this.setState({
-        videos: videos,
-        selectedVideo: videos[0]
-      });
-    });
-  }
-
-  render() {
-    const videoSearch = _.debounce((term) => { this.videoSearch(term)}, 300);
-
-    return (
-      <div>
-        <SearchBar onSearchTermChange={videoSearch} />
-        <VideoDetail video={this.state.selectedVideo} />
-        <VideoList
-          onVideoSelect={selectedVideo => this.setState({ selectedVideo })}
-          videos={this.state.videos} />
-      </div>
-    );
-  }
-}
-
-ReactDOM.render(<App />, document.querySelector('.container'));
+ReactDOM.render(
+  <Provider store={createStoreWithMiddleware(reducers)}>
+    <BrowserRouter>
+      <Switch>
+        <Route path="/posts/new" component={PostsNew} />
+        <Route path="/" component={PostsIndex} />
+      </Switch>
+    </BrowserRouter>
+  </Provider>
+  , document.querySelector('.container'));
